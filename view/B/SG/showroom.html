@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <script src="../../header.js"></script>
+  <body>
+    <div class="body">
+      <script src="menu2.js"></script>
+
+      <div role="main" class="main">
+        <section class="page-top">
+          <div class="container">
+            <div class="row">
+              <div class="col-md-12">
+                <h2>Showroom</h2>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="container">
+          <!-- Hero -->
+          <div class="row" style="margin-top: 10px;">
+            <div class="col-md-12">
+              <div
+                class="panel panel-default"
+                style="border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #f7f7f7, #ffffff);"
+              >
+                <div class="panel-body" style="padding: 24px;">
+                  <h2 style="margin-top: 0;"><strong>Virtual Store Showroom</strong></h2>
+                  <p class="lead" style="margin-bottom: 16px;">
+                    Choose a room to explore a curated furniture setup in a new window.
+                  </p>
+
+                  <div class="row">
+                    <div class="col-md-6 col-sm-12" style="margin-bottom: 10px;">
+                      <label for="roomSelect"><strong>Select a Room</strong></label>
+                      <select id="roomSelect" class="form-control">
+                        <option value="living">Living Room</option>
+                        <option value="bedroom">Bedroom</option>
+                        <option value="dining">Dining Room</option>
+                        <option value="study">Study Room</option>
+                      </select>
+                    </div>
+
+                    <div class="col-md-6 col-sm-12" style="margin-bottom: 10px;">
+                      <label style="visibility:hidden;">Enter</label>
+                      <button class="btn btn-primary btn-block" onclick="enterShowroom()">
+                        Enter Showroom (Opens New Window)
+                      </button>
+                      <small class="text-muted" style="display:block; margin-top:8px;">
+                        If a popup is blocked, allow popups for this site.
+                      </small>
+                    </div>
+                  </div>
+
+                  <hr class="tall">
+
+                  <!-- How it works -->
+                  <div class="row">
+                    <div class="col-md-4 col-sm-12" style="margin-bottom: 10px;">
+                      <div class="panel panel-default" style="border-radius: 10px;">
+                        <div class="panel-body">
+                          <h4 style="margin-top: 0;"><strong>1) Select</strong></h4>
+                          <p>Pick a room type to match your furniture needs.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-md-4 col-sm-12" style="margin-bottom: 10px;">
+                      <div class="panel panel-default" style="border-radius: 10px;">
+                        <div class="panel-body">
+                          <h4 style="margin-top: 0;"><strong>2) Explore</strong></h4>
+                          <p>A new window opens with the showroom scene.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-md-4 col-sm-12" style="margin-bottom: 10px;">
+                      <div class="panel panel-default" style="border-radius: 10px;">
+                        <div class="panel-body">
+                          <h4 style="margin-top: 0;"><strong>3) Discover</strong></h4>
+                          <p>View featured items and jump to product details.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="tall">
+
+          <div class="row">
+            <div class="col-md-12">
+              <div class="alert alert-info">
+                <strong>Note:</strong> This showroom is a visual browsing experience and opens in a separate window.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        function enterShowroom() {
+          var room = document.getElementById("roomSelect").value;
+
+          // Opens a new window (user click triggered -> popup safe)
+          window.open(
+            "showroomRoom.html?room=" + encodeURIComponent(room),
+            "_blank",
+            "width=1200,height=800"
+          );
+        }
+      </script>
+
+      <script src="../footer.js"></script>
+    </div>
+  </body>
+</html>

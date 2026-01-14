@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <script src="../../header.js"></script>
+  <body>
+    <div class="body">
+      <script src="menu2.js"></script>
+
+      <div role="main" class="main">
+        <section class="page-top">
+          <div class="container">
+            <div class="row">
+              <div class="col-md-12">
+                <h2 id="roomTitle">Showroom</h2>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12">
+              <div class="panel panel-default" style="border-radius:12px; overflow:hidden;">
+                <div style="height: 520px; overflow:hidden;">
+                  <img id="roomImage" src="../img/showroom_living.jpg" alt="Room" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div class="panel-body">
+                    <h3><strong>Top 2 Most Popular Furnitures</strong></h3>
+                    <p>Based on recent customer demand.</p>
+
+                <div class="row">
+                    <div class="col-md-6 col-sm-12" style="margin-bottom:12px;">
+                        <div class="panel panel-default">
+                            <div style="height:200px; overflow:hidden;">
+                                <img src="../img/popular1.jpg"
+                                    style="width:100%; height:100%; object-fit:cover;">
+                            </div>
+      <div class="panel-body">
+        <h4><strong>Modern Fabric Sofa</strong></h4>
+        <p>$899</p>
+        <a class="btn btn-primary btn-block"
+           href="furnitureProductDetails.html?sku=POPULAR001">
+           View Details
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-sm-12" style="margin-bottom:12px;">
+    <div class="panel panel-default">
+      <div style="height:200px; overflow:hidden;">
+        <img src="../img/popular2.jpg"
+             style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <div class="panel-body">
+        <h4><strong>Minimalist Dining Table</strong></h4>
+        <p>$1,299</p>
+        <a class="btn btn-primary btn-block"
+           href="furnitureProductDetails.html?sku=POPULAR002">
+           View Details
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        var url = new URL(window.location.href);
+        var room = url.searchParams.get("room") || "living";
+
+        var roomTitle = {
+          living: "Living Room Showroom",
+          bedroom: "Bedroom Showroom",
+          dining: "Dining Room Showroom",
+          study: "Study Room Showroom"
+        };
+
+        var roomImage = {
+          living: "../img/showroom_living.jpg",
+          bedroom: "../img/showroom_bedroom.jpg",
+          dining: "../img/showroom_dining.jpg",
+          study: "../img/showroom_study.jpg"
+        };
+
+        document.getElementById("roomTitle").innerText = roomTitle[room] || "Showroom";
+        document.getElementById("roomImage").src = roomImage[room] || roomImage.living;
+      </script>
+
+      <script src="../footer.js"></script>
+    </div>
+  </body>
+</html>
