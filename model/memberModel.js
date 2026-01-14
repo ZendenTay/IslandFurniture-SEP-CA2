@@ -78,6 +78,7 @@ var memberDB = {
                 }
             });
         });
+        //Test
     },
     getMember: function (email) {
         return new Promise( ( resolve, reject ) => {
