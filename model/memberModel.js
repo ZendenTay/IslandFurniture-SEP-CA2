@@ -1,4 +1,5 @@
 var db = require('./databaseConfig.js');
+require("dotenv").config();
 var Member = require('./member.js');
 var ShoppingCartLineItem = require('./shoppingCartLineItem.js');
 var crypto = require('crypto');
@@ -209,51 +210,78 @@ var memberDB = {
             });
         });
     },
-    registerMember: function (email, password, hostName) {
-        return new Promise( ( resolve, reject ) => {
-            var conn = db.getConnection();
-            conn.connect(function (err) {
-                if (err) {
-                    console.log(err);
-                    conn.end();
-                    return reject(err);
-                }
-                else {
-                    bcrypt.hash(password, 5, function(err, hash) {
-                        var activationCode = generateRandomNumber(40);
-                        var passwordReset = generateRandomNumber(40);
-                        var sqlArgs = [activationCode, email, new Date(), hash, passwordReset];
-                        var sql = 'INSERT INTO memberentity(ACTIVATIONCODE,EMAIL,JOINDATE,PASSWORDHASH,PASSWORDRESET,LOYALTYTIER_ID)'
-                            + 'values(?,?,?,?,?,15)';
-                        conn.query(sql, sqlArgs, function (err, result) {
-                            if (err) {
-                                conn.end();
-                                return reject(err);
-                            } else {
-                                if(result.affectedRows > 0) {
-                                    var mailOptions = {
-                                        from: 'islandfurnituresep@gmail.com',
-                                        to: email,
-                                        subject: 'Island Furniture Member Account Activation',
-                                        text: 'Greetings from Island Furniture... \n\n'
-                                            + 'Click on the link below to activate your Island Furniture account: \n\n'
-                                            + 'http://' + hostName + '/activateMemberAccount.html?email=' + email + '&activateCode=' + activationCode
-                                    };
-                                    emailer.sendMail(mailOptions, function(error, info){
-                                        if (error) {
-                                            console.log(error);
-                                        }
-                                    });
-                                    conn.end();
-                                    return resolve({success:true});
-                                }
-                            }
-                        });
-                    });
-                }
-            });
+registerMember: function (email, password, hostName) {
+  return new Promise((resolve, reject) => {
+    var conn = db.getConnection();
+    conn.connect(function (err) {
+      if (err) {
+        console.log(err);
+        conn.end();
+        return reject(err);
+      }
+
+      bcrypt.hash(password, 5, function (err, hash) {
+        if (err) {
+          conn.end();
+          return reject(err);
+        }
+
+        var activationCode = generateRandomNumber(40);
+        var passwordReset = generateRandomNumber(40);
+
+        var sqlArgs = [activationCode, email, new Date(), hash, passwordReset];
+        var sql =
+          "INSERT INTO memberentity(ACTIVATIONCODE,EMAIL,JOINDATE,PASSWORDHASH,PASSWORDRESET,LOYALTYTIER_ID) " +
+          "values(?,?,?,?,?,15)";
+
+        conn.query(sql, sqlArgs, function (err, result) {
+          if (err) {
+            conn.end();
+            return reject(err);
+          }
+
+          if (!result || result.affectedRows <= 0) {
+            conn.end();
+            return resolve({ success: false, errorMsg: "Registration failed (no rows inserted)." });
+          }
+
+          const activationLink =
+            "http://" + hostName +
+            "/activateMemberAccount.html?email=" + encodeURIComponent(email) +
+            "&activateCode=" + encodeURIComponent(activationCode);
+
+          const mailOptions = {
+            from: process.env.GMAIL_USER, // sender (your server gmail)
+            to: email,                   // ✅ receiver (the user's registered email)
+            subject: "Island Furniture Member Account Activation",
+            text:
+              "Greetings from Island Furniture...\n\n" +
+              "Click on the link below to activate your Island Furniture account:\n\n" +
+              activationLink
+          };
+
+          console.log("ACTIVATION LINK:", activationLink);
+
+          emailer.sendMail(mailOptions, function (error, info) {
+            conn.end();
+
+            if (error) {
+              console.log("❌ Email send failed:", error);
+              return resolve({
+                success: false,
+                errorMsg: "Failed to send activation email. Please try again later."
+              });
+            }
+
+            console.log("✅ Email sent:", info.response);
+            return resolve({ success: true });
+          });
         });
-    },
+      });
+    });
+  });
+},
+
     getMemberActivateCode: function (email) {
         return new Promise( ( resolve, reject ) => {
             var conn = db.getConnection();
@@ -599,10 +627,21 @@ var generateRandomNumber = function(digits){
     return crypto.randomBytes(Math.ceil(digits/2)).toString('hex');
 };
 
+
+
 var emailer = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'islandfurnituresep@gmail.com',
-        pass: 'islandFurniture123'
-    }
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
+
+// ✅ ADD THIS DIRECTLY BELOW
+emailer.verify((err, success) => {
+  if (err) {
+    console.log("❌ Emailer verify failed:", err);
+  } else {
+    console.log("✅ Emailer ready to send emails");
+  }
 });
