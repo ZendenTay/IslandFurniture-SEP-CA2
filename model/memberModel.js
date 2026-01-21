@@ -211,6 +211,7 @@ var memberDB = {
         });
     },
 registerMember: function (email, password, hostName) {
+    //Changed code for Login issue
   return new Promise((resolve, reject) => {
     var conn = db.getConnection();
     conn.connect(function (err) {
@@ -334,65 +335,112 @@ registerMember: function (email, password, hostName) {
             });
         });
     },
-    updateMember: function (details) {
-        return new Promise( ( resolve, reject ) => {
-            var conn = db.getConnection();
-            conn.connect(function (err) {
-                if (err) {
-                    console.log(err);
-                    conn.end();
-                    return reject(err);
-                }
-                else {
-                    var email = details.email;
-                    var name = details.name;
-                    var phone = details.phone;
-                    var country = details.country;
-                    var address = details.address;
-                    var securityQuestion = details.securityQuestion;
-                    var securityAnswer = details.securityAnswer;
-                    var age = details.age;
-                    var income = details.income;
-                    var sla = details.sla;
-                    var password = details.password;
-                    if(password == null || password == '') {
-                        var sql = 'UPDATE memberentity SET NAME=?, PHONE=?, CITY=?, ADDRESS=?, SECURITYQUESTION=?,'
-                        + 'SECURITYANSWER=?, AGE=?, INCOME=?, SERVICELEVELAGREEMENT=? WHERE EMAIL=?';
-                        var sqlArgs = [name,phone,country,address,securityQuestion,securityAnswer,age,income,sla,email];
-                        conn.query(sql, sqlArgs, function (err, result) {
-                            if (err) {
-                                conn.end();
-                                return reject(err);
-                            } else {
-                                if(result.affectedRows > 0) {
-                                    conn.end();
-                                    return resolve({success:true});
-                                }
-                            }
-                        });
-                    }
-                    else {
-                        bcrypt.hash(password, 5, function(err, hash) {
-                            var sql = 'UPDATE memberentity SET NAME=?, PHONE=?, CITY=?, ADDRESS=?, SECURITYQUESTION=?,'
-                                + 'SECURITYANSWER=?, AGE=?, INCOME=?, SERVICELEVELAGREEMENT=?, PASSWORDHASH=? WHERE EMAIL=?';
-                            var sqlArgs = [name,phone,country,address,securityQuestion,securityAnswer,age,income,sla,hash,email];
-                            conn.query(sql, sqlArgs, function (err, result) {
-                                if (err) {
-                                    conn.end();
-                                    return reject(err);
-                                } else {
-                                    if(result.affectedRows > 0) {
-                                        conn.end();
-                                        return resolve({success:true});
-                                    }
-                                }
-                            });
-                        });
-                    }
-                }
+updateMember: function (details) {
+  return new Promise((resolve, reject) => {
+    var conn = db.getConnection();
+    conn.connect(function (err) {
+      if (err) {
+        console.log(err);
+        conn.end();
+        return reject(err);
+      }
+
+      const email = details.email;
+      const name = details.name;
+      const phone = details.phone;
+      const country = details.country;
+      const address = details.address;
+      const securityQuestion = Number(details.securityQuestion); // ✅ ensure int
+      const securityAnswer = details.securityAnswer;
+      const age = details.age;
+      const income = details.income;
+      const sla = details.sla;
+
+      const newPassword = details.password;     // may be ""
+      const oldPassword = details.oldPassword;  // ✅ new field from frontend
+
+      // ✅ If oldPassword is provided, user is requesting a password change
+      if (oldPassword && oldPassword.trim() !== "") {
+        // Must provide new password
+        if (!newPassword || newPassword.trim() === "") {
+          conn.end();
+          return resolve({ success: false, errorMsg: "New password cannot be empty." });
+        }
+        if (newPassword.length < 8) {
+          conn.end();
+          return resolve({ success: false, errorMsg: "New password must be at least 8 characters." });
+        }
+
+        // 1) Get current password hash
+        const selectSql = "SELECT PASSWORDHASH FROM memberentity WHERE EMAIL=?";
+        conn.query(selectSql, [email], function (err, result) {
+          if (err) {
+            conn.end();
+            return reject(err);
+          }
+          if (!result || result.length === 0) {
+            conn.end();
+            return resolve({ success: false, errorMsg: "Member not found." });
+          }
+
+          const currentHash = result[0].PASSWORDHASH;
+
+          // 2) Verify old password
+          bcrypt.compare(oldPassword, currentHash, function (err, match) {
+            if (err) {
+              conn.end();
+              return reject(err);
+            }
+            if (!match) {
+              conn.end();
+              return resolve({ success: false, errorMsg: "Old password is incorrect." });
+            }
+
+            // 3) Hash new password + update profile + password
+            bcrypt.hash(newPassword, 5, function (err, hash) {
+              if (err) {
+                conn.end();
+                return reject(err);
+              }
+
+              const sql =
+                "UPDATE memberentity SET NAME=?, PHONE=?, CITY=?, ADDRESS=?, SECURITYQUESTION=?," +
+                " SECURITYANSWER=?, AGE=?, INCOME=?, SERVICELEVELAGREEMENT=?, PASSWORDHASH=? WHERE EMAIL=?";
+
+              const sqlArgs = [
+                name, phone, country, address, securityQuestion,
+                securityAnswer, age, income, sla, hash, email
+              ];
+
+              conn.query(sql, sqlArgs, function (err, result) {
+                conn.end();
+                if (err) return reject(err);
+                return resolve({ success: result.affectedRows > 0 });
+              });
             });
+          });
         });
-    },
+
+      } else {
+        // ✅ No password change: update profile only
+        const sql =
+          "UPDATE memberentity SET NAME=?, PHONE=?, CITY=?, ADDRESS=?, SECURITYQUESTION=?," +
+          " SECURITYANSWER=?, AGE=?, INCOME=?, SERVICELEVELAGREEMENT=? WHERE EMAIL=?";
+
+        const sqlArgs = [
+          name, phone, country, address, securityQuestion,
+          securityAnswer, age, income, sla, email
+        ];
+
+        conn.query(sql, sqlArgs, function (err, result) {
+          conn.end();
+          if (err) return reject(err);
+          return resolve({ success: result.affectedRows > 0 });
+        });
+      }
+    });
+  });
+},
     sendPasswordResetCode: function (email, url) {
         return new Promise( ( resolve, reject ) => {
             var conn = db.getConnection();

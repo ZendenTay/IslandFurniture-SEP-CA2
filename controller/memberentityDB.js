@@ -190,25 +190,34 @@ app.put('/api/activateMemberAccount', jsonParser, function (req, res) {
     }
 });
 
+//Changed code for Profile changing
 app.put('/api/updateMember', [middleware.checkToken, jsonParser], function (req, res) {
-    member.updateMember(req.body)
-        .then((result) => {
-            if(result.success) {
-                member.getMember(req.body.email)
-                    .then((result) => {
-                        res.send(result);
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        res.status(500).send("Failed to get member");
-                    });
-            }
-        })
-        .catch((err) => {
-            console.log(err);
-            res.status(500).send("Failed to update member");
+  member.updateMember(req.body)
+    .then((updateResult) => {
+      if (!updateResult || !updateResult.success) {
+        return res.status(400).json({
+          success: false,
+          errorMsg: updateResult?.errorMsg || "Update failed"
         });
+      }
+
+      // success: fetch latest member and return it
+      return member.getMember(req.body.email)
+        .then((m) => {
+          // ✅ do NOT send these back
+          delete m.passwordHash;
+          delete m.passwordReset;
+          delete m.activationCode;
+
+          return res.json({ success: true, member: m });
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+      return res.status(500).json({ success: false, errorMsg: "Failed to update member" });
+    });
 });
+
 
 app.put('/api/updateMemberPassword', jsonParser, function (req, res) {
     var email = req.body.email;
@@ -248,29 +257,29 @@ app.put('/api/updateMemberDeliveryDetails', [middleware.checkToken, jsonParser],
         });
 });
 
-app.put('/api/updateMember', middleware.checkToken, function (req, res) {
-    var details = {
-        email: req.body.email,
-        name: req.body.name,
-        phone: req.body.phone,
-        country: req.body.country,
-        address: req.body.address,
-        securityQuestion: req.body.securityQuestion,
-        securityAnswer: req.body.securityAnswer,
-        age: req.body.age,
-        income: req.body.income,
-        sla: req.body.sla,
-        password: req.body.password // Will be empty string "" if no change is needed
-    };
+// app.put('/api/updateMember', middleware.checkToken, function (req, res) {
+//     var details = {
+//         email: req.body.email,
+//         name: req.body.name,
+//         phone: req.body.phone,
+//         country: req.body.country,
+//         address: req.body.address,
+//         securityQuestion: req.body.securityQuestion,
+//         securityAnswer: req.body.securityAnswer,
+//         age: req.body.age,
+//         income: req.body.income,
+//         sla: req.body.sla,
+//         password: req.body.password // Will be empty string "" if no change is needed
+//     };
 
-    member.updateMember(details)
-        .then((result) => {
-            res.send(result);
-        })
-        .catch((err) => {
-            console.log(err);
-            res.status(500).send("Failed to update member");
-        });
-});
+//     member.updateMember(details)
+//         .then((result) => {
+//             res.send(result);
+//         })
+//         .catch((err) => {
+//             console.log(err);
+//             res.status(500).send("Failed to update member");
+//         });
+// });
 
 module.exports = app;

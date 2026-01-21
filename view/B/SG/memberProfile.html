@@ -262,31 +262,28 @@
                     }
 
                     // 4. Send Update to Backend
-                    var updateData = {
-                        email: email, name: name, phone: phone, country: country, 
-                        address: address, securityQuestion: securityQuestion, 
-                        securityAnswer: securityAnswer, age: age, income: income, 
-                        sla: sla, password: password 
-                    };
+var updateData = {
+  email, name, phone, country, address,
+  securityQuestion, securityAnswer, age, income, sla,
+  password,          // new password (may be "")
+  oldPassword        // add this
+};
+
 
                     fetch('/api/updateMember', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
                         body: JSON.stringify(updateData)
                     }).then(response => response.json())
+                    //Changed code for profile update
                     .then(data => {
                         if (data.success) {
-                            // Update session storage with new info so page doesn't revert on reload
-                            member.name = name; member.email = email; member.phone = phone;
-                            member.country = country; member.address = address;
-                            member.securityQuestion = securityQuestion; member.securityAnswer = securityAnswer;
-                            member.age = age; member.income = income; member.sla = sla;
+                            member = data.member;
                             sessionStorage.setItem("member", JSON.stringify(member));
-                            
                             alert("Profile updated successfully!");
                             window.location.reload();
                         } else {
-                            alert("Update failed.");
+alert(data.errorMsg || "Update failed.");
                         }
                     }).catch(err => console.log(err));
 
