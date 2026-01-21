@@ -30,6 +30,19 @@
             document.addEventListener('DOMContentLoaded', function(){
                 member = JSON.parse(sessionStorage.getItem("member"));
 
+                // Test Case 1: Fill in the form fields with the logged-in user's data
+                if (member != null) {
+                    document.getElementById("name").value = member.name;
+                    document.getElementById("email").value = member.email;
+                    document.getElementById("phone").value = member.phone;
+                    document.getElementById("country").value = member.country;
+                    document.getElementById("address").value = member.address;
+                    document.getElementById("securityQuestion").value = member.securityQuestion;
+                    document.getElementById("securityAnswer").value = member.securityAnswer;
+                    document.getElementById("age").value = member.age;
+                    document.getElementById("income").value = member.income;
+                }
+
                 if(member.sla == 1) {
                     document.getElementById("serviceLevelAgreement").checked = true;
                 }
