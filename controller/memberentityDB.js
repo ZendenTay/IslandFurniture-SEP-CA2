@@ -248,4 +248,29 @@ app.put('/api/updateMemberDeliveryDetails', [middleware.checkToken, jsonParser],
         });
 });
 
+app.put('/api/updateMember', middleware.checkToken, function (req, res) {
+    var details = {
+        email: req.body.email,
+        name: req.body.name,
+        phone: req.body.phone,
+        country: req.body.country,
+        address: req.body.address,
+        securityQuestion: req.body.securityQuestion,
+        securityAnswer: req.body.securityAnswer,
+        age: req.body.age,
+        income: req.body.income,
+        sla: req.body.sla,
+        password: req.body.password // Will be empty string "" if no change is needed
+    };
+
+    member.updateMember(details)
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.status(500).send("Failed to update member");
+        });
+});
+
 module.exports = app;

@@ -204,91 +204,94 @@
             }
 
             async function submitForm() {
+                // 1. Get Password Fields
                 var oldPassword = document.getElementById('oldPassword').value;
                 var password = document.getElementById("password").value;
                 var repassword = document.getElementById("repassword").value;
-                var ok = true;
-                console.log(oldPassword)
+
+                // 2. Get Profile Fields
+                var name = document.getElementById("name").value;
+                var email = document.getElementById("email").value;
+                var phone = document.getElementById("phone").value;
+                var country = document.getElementById("country").value;
+                var address = document.getElementById("address").value;
+                var securityQuestion = document.getElementById("securityQuestion").value;
+                var securityAnswer = document.getElementById("securityAnswer").value;
+                var age = document.getElementById("age").value;
+                var income = document.getElementById("income").value;
+                var sla = document.getElementById("serviceLevelAgreement").checked ? 1 : 0;
+
+                // 3. Basic Validation
                 if (document.getElementById("profileForm").checkValidity()) {
-                    if (oldPassword != "" && password != "" && repassword != "") {
-                        var memberData = {
-                            id: member.id,
-                            password: oldPassword
-                        };
+                    
+                    // Password change requested
+                    if (oldPassword != "") {
+                        // New password cannot be blank if Old Password is provided
+                        if (password == "" || repassword == "") {
+                            alert("Please enter your new password to proceed with the change.");
+                            return;
+                        }
+                        // New passwords must match
+                        if (password != repassword) {
+                            alert("New passwords do not match.");
+                            return;
+                        }
+                        // Length check
+                        if (password.length < 8) {
+                            alert("Password must be at least 8 characters.");
+                            return;
+                        }
 
-                        await fetch(new Request('/api/verifyPassword',
-                        {
+                        // Verify Old Password with Backend
+                        var verifyData = { id: member.id, password: oldPassword };
+                        var verifyResponse = await fetch('/api/verifyPassword', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: 'Bearer ' + authToken
-                            },
-                            body: JSON.stringify(memberData)
-                        })).then(function (response) {
-                            return response.json();
-                        }).then(function (data) {
-                            if(data.success) {
-                                if (password != repassword) {
-                                    //Check if password and repassword is the same
-                                    document.getElementById("password").style.borderColor = "#E34234";
-                                    document.getElementById("repassword").style.borderColor = "#E34234";
-                                    alert("Passwords do not match. Please key again.");
-                                    ok = false;
-                                } else if (password == repassword) {
-                                    //Check if password length is at least 8
-                                    if (password.length != 0 && password.length < 8) {
-                                        alert("Passwords too short. At least 8 characters.");
-                                        ok = false;
-                                    }
-                                }
-                            }
-                            else {
-                                alert("Old password is incorrect.");
-                                ok = false;
-                            }
-                        }).catch(function (error) {
-                            console.log(error);
-                        }); 
+                            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
+                            body: JSON.stringify(verifyData)
+                        });
+                        var verifyResult = await verifyResponse.json();
+
+                        if (!verifyResult.success) {
+                            alert("Old password is incorrect.");
+                            return;
+                        }
+                    } 
+                    // For no password change
+                    else {
+                        password = "";
                     }
 
-                    if(ok) {
-                        var data = {
-                            email: document.getElementById("email").value,
-                            name: document.getElementById("name").value,
-                            phone: document.getElementById("phone").value,
-                            country: document.getElementById("country").value,
-                            address: document.getElementById("address").value,
-                            securityQuestion: document.getElementById("securityQuestion").value,
-                            securityAnswer: document.getElementById("securityAnswer").value,
-                            age: document.getElementById("age").value,
-                            income: document.getElementById("income").value,
-                            sla: document.getElementById("serviceLevelAgreement").checked ? 1:0,
-                            password: document.getElementById("password").value
-                        };
-                        
-                        fetch(new Request('/api/updateMember',
-                        {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                Authorization: 'Bearer ' + authToken
-                            },
-                            body: JSON.stringify(data)
-                        })).then(function (response) {
-                            return response.json();
-                        }).then(function (data) {
-                            //update member's info in the session storage
-                            sessionStorage.setItem("member", JSON.stringify(data));
-                            sessionStorage.setItem("memberEmail", data.email);
-                            sessionStorage.setItem("memberName", data.name);
-                            var url = window.location.origin + window.location.pathname;
-                            window.location.href = url + '?goodMsg=Successfully Updated!';
-                        }).catch(function (error) {
-                            console.log(error);
-                            var url = window.location.origin + window.location.pathname;
-                            window.location.href = url + '?errMsg=Unable to Update.';
-                        });
-                    }
+                    // 4. Send Update to Backend
+                    var updateData = {
+                        email: email, name: name, phone: phone, country: country, 
+                        address: address, securityQuestion: securityQuestion, 
+                        securityAnswer: securityAnswer, age: age, income: income, 
+                        sla: sla, password: password 
+                    };
+
+                    fetch('/api/updateMember', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
+                        body: JSON.stringify(updateData)
+                    }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update session storage with new info so page doesn't revert on reload
+                            member.name = name; member.email = email; member.phone = phone;
+                            member.country = country; member.address = address;
+                            member.securityQuestion = securityQuestion; member.securityAnswer = securityAnswer;
+                            member.age = age; member.income = income; member.sla = sla;
+                            sessionStorage.setItem("member", JSON.stringify(member));
+                            
+                            alert("Profile updated successfully!");
+                            window.location.reload();
+                        } else {
+                            alert("Update failed.");
+                        }
+                    }).catch(err => console.log(err));
+
+                } else {
+                    alert("Please fill in all required fields.");
                 }
             }
 
