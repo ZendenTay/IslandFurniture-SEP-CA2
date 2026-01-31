@@ -339,10 +339,10 @@ updateMember: function (details) {
   return new Promise((resolve, reject) => {
     var conn = db.getConnection();
     conn.connect(function (err) {
-      if (err) {
-        console.log(err);
+      if (error) {
+        console.log(error);
         conn.end();
-        return reject(err);
+        return reject(error);
       }
 
       const email = details.email;
@@ -350,16 +350,16 @@ updateMember: function (details) {
       const phone = details.phone;
       const country = details.country;
       const address = details.address;
-      const securityQuestion = Number(details.securityQuestion); // ✅ ensure int
+      const securityQuestion = Number(details.securityQuestion); // ensure int
       const securityAnswer = details.securityAnswer;
       const age = details.age;
       const income = details.income;
       const sla = details.sla;
 
       const newPassword = details.password;     // may be ""
-      const oldPassword = details.oldPassword;  // ✅ new field from frontend
+      const oldPassword = details.oldPassword;  // new field from frontend
 
-      // ✅ If oldPassword is provided, user is requesting a password change
+      // If oldPassword is provided, user is requesting a password change
       if (oldPassword && oldPassword.trim() !== "") {
         // Must provide new password
         if (!newPassword || newPassword.trim() === "") {
@@ -371,7 +371,7 @@ updateMember: function (details) {
           return resolve({ success: false, errorMsg: "New password must be at least 8 characters." });
         }
 
-        // 1) Get current password hash
+        // Retrieving current password hash
         const selectSql = "SELECT PASSWORDHASH FROM memberentity WHERE EMAIL=?";
         conn.query(selectSql, [email], function (err, result) {
           if (err) {
@@ -385,7 +385,7 @@ updateMember: function (details) {
 
           const currentHash = result[0].PASSWORDHASH;
 
-          // 2) Verify old password
+          // Verify old password
           bcrypt.compare(oldPassword, currentHash, function (err, match) {
             if (err) {
               conn.end();
@@ -396,7 +396,7 @@ updateMember: function (details) {
               return resolve({ success: false, errorMsg: "Old password is incorrect." });
             }
 
-            // 3) Hash new password + update profile + password
+            // Hash new password + update profile + password
             bcrypt.hash(newPassword, 5, function (err, hash) {
               if (err) {
                 conn.end();
@@ -422,7 +422,7 @@ updateMember: function (details) {
         });
 
       } else {
-        // ✅ No password change: update profile only
+        // No password change: update profile only
         const sql =
           "UPDATE memberentity SET NAME=?, PHONE=?, CITY=?, ADDRESS=?, SECURITYQUESTION=?," +
           " SECURITYANSWER=?, AGE=?, INCOME=?, SERVICELEVELAGREEMENT=? WHERE EMAIL=?";
