@@ -48,7 +48,7 @@
                 document.getElementById("serviceLevelAgreement").checked = true;
             }
 
-            //Get Bought Items
+            //Get Bought Items (Done by Birr Gill)
             fetch(new Request('/api/getBoughtItem/' + member.id,
                 {
                     method: 'GET',
@@ -70,7 +70,7 @@
                         for (i = 0; i < boughtItem.length; i++) {
                             orderIdList[i] = boughtItem[i].id;
                         }
-                        //unduplicate order IDs
+                        //prevent duplicates of order IDs
                         orderIdList = [...new Set(orderIdList)];
                         var temp;
                         var size = orderIdList.length;
@@ -85,7 +85,7 @@
                             }
                         }
 
-                        // FIX: Loop through all unique Order IDs to display each order
+                        // Loop through all unique Order IDs to display each order
                         for (var k = 0; k < orderIdList.length; k++) {
                             var currentOrderId = orderIdList[k];
 
@@ -183,6 +183,7 @@
                         }
 
                         htmlTxt += '<h4 style="font-weight: bold; padding-left: 20px">Total Amount Spent: $' + overallPrice + '</h4>';
+                        //inserting salesHistory item in tab
                         document.getElementById("salesHistoryTab").innerHTML = htmlTxt;
                     }
                 }).catch(function (error) {
