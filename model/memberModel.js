@@ -227,10 +227,10 @@ registerMember: function (email, password, hostName) {
           return reject(err);
         }
 
-        var activationCode = generateRandomNumber(40);
+        var activationCodes = generateRandomNumber(40);
         var passwordReset = generateRandomNumber(40);
 
-        var sqlArgs = [activationCode, email, new Date(), hash, passwordReset];
+        var sqlArgs = [activationCodes, email, new Date(), hash, passwordReset];
         var sql =
           "INSERT INTO memberentity(ACTIVATIONCODE,EMAIL,JOINDATE,PASSWORDHASH,PASSWORDRESET,LOYALTYTIER_ID) " +
           "values(?,?,?,?,?,15)";
@@ -253,7 +253,7 @@ registerMember: function (email, password, hostName) {
 
           const mailOptions = {
             from: process.env.GMAIL_USER, // sender (your server gmail)
-            to: email,                   // ✅ receiver (the user's registered email)
+            to: email,                   // receiver (the user's registered email)
             subject: "Island Furniture Member Account Activation",
             text:
               "Greetings from Island Furniture...\n\n" +
@@ -338,7 +338,7 @@ registerMember: function (email, password, hostName) {
 updateMember: function (details) {
   return new Promise((resolve, reject) => {
     var conn = db.getConnection();
-    conn.connect(function (err) {
+    conn.connect(function (error) {
       if (error) {
         console.log(error);
         conn.end();

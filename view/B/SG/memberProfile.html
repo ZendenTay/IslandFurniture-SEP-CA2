@@ -209,6 +209,22 @@
             return startDate.toLocaleDateString("en-US", options);
         }
 
+                    function showUpdateSuccess(message) {
+  const bar = document.getElementById("updateSuccessBar");
+  if (!bar) return;
+
+  bar.textContent = message || "Updated successfully";
+  bar.style.display = "block";
+
+  // scroll to it (so user sees it even if page is lower)
+  bar.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  // auto hide after 3s
+  setTimeout(() => {
+    bar.style.display = "none";
+  }, 3000);
+}
+
         async function submitForm() {
             // 1. Get Password Fields
             var oldPassword = document.getElementById('oldPassword').value;
@@ -226,6 +242,7 @@
             var age = document.getElementById("age").value;
             var income = document.getElementById("income").value;
             var sla = document.getElementById("serviceLevelAgreement").checked ? 1 : 0;
+
 
             // 3. Basic Validation
             if (document.getElementById("profileForm").checkValidity()) {
@@ -284,10 +301,22 @@
                     //Changed code for profile update
                     .then(data => {
                         if (data.success) {
+
+                            //Update session member 
                             member = data.member;
+                            showUpdateSuccess("Updated successfully")
+                            member.name = name;
+                            member.phone = phone;
+                            member.country = country;
+                            member.address = address;
+                            member.securityQuestion = securityQuestion;
+                            member.securityAnswer = securityAnswer;
+                            member.age = age;
+                            member.income = income;
+                            member.sla = sla;
                             sessionStorage.setItem("member", JSON.stringify(member));
-                            alert("Profile updated successfully!");
-                            window.location.reload();
+                            // alert("Profile updated successfully!");
+                            // window.location.reload();
                         } else {
                             alert(data.errorMsg || "Update failed.");
                         }
@@ -333,6 +362,11 @@
                             <div id="overview" class="tab-pane active">
                                 <form onsubmit="return false;" id="profileForm">
                                     <h4>Personal Information</h4>
+
+                                    <div id="updateSuccessBar" class="alert alert-success" style="display:none; margin-top:12px;">
+                                        Updated successfully
+                                    </div>
+
                                     <div class="form-group">
                                         <label>Name</label>
                                         <input class="form-control" required="true" id="name" type="text" />
